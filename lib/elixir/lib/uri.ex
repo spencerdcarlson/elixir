@@ -100,6 +100,28 @@ defmodule URI do
     Enum.map_join(enumerable, "&", &encode_kv_pair/1)
   end
 
+  @doc """
+  Encodes an enumerable into a query string.
+
+  Takes a URI struct and an enumerable that enumerates as a list of two-element
+  tuples (for instance, a map or a keyword list) and returns a URI with query attribute
+  set in accordance with URI.encode_query/1.
+
+  ## Examples
+
+      iex> "https://elixir-lang.org" |> URI.parse() |> URI.encode_query(%{"foo" => 1, "bar" => 2}) |> URI.to_string()
+      "https://elixir-lang.org?bar=2&foo=1"
+
+  """
+  @spec encode_query(URI.t(), Enum.t()) :: URI.t()
+  def encode_query(%__MODULE__{query: nil} = uri, enumerable) do
+    %__MODULE__{uri | query: URI.encode_query(enumerable)}
+  end
+
+  def encode_query(%__MODULE__{query: query} = uri, enumerable) do
+    %__MODULE__{uri | query: query <> "&" <> URI.encode_query(enumerable)}
+  end
+
   defp encode_kv_pair({key, _}) when is_list(key) do
     raise ArgumentError, "encode_query/1 keys cannot be lists, got: #{inspect(key)}"
   end
